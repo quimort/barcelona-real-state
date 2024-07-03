@@ -16,11 +16,11 @@ def main():
     #get web page
     driver.get("https://www.habitaclia.com/viviendas-barcelona.htm")
 
-    a = driver.find_element(By.NAME,'h3')
-
-    #print page source
-    print(a)
-
+    #accept cookies
+    time.sleep(2)
+    cookies = driver.find_element(By.ID, "didomi-notice-agree-button")
+    cookies.click()
+    
     #close web driver
     driver.close()
 
