@@ -7,8 +7,8 @@ from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 import undetected_chromedriver as uc
 
-def get_chrome_driver():
-    driver = uc.Chrome(headless=True,use_subprocess=False)
+def get_chrome_driver()-> webdriver:
+    driver = webdriver.Chrome()
     return driver
 def get_propertie_url(soup:BeautifulSoup)->list:
 
@@ -20,7 +20,7 @@ def get_propertie_url(soup:BeautifulSoup)->list:
     
     return list_properties_url
 
-def get_all_properties_page(driver:webdriver)->list:
+def get_all_properties_in_page(driver:webdriver)->list:
     final_list = []
     for i in range(15):
         html_text = driver.page_source
@@ -30,6 +30,23 @@ def get_all_properties_page(driver:webdriver)->list:
         ActionChains(driver).key_down(Keys.PAGE_DOWN).key_up(Keys.PAGE_DOWN).perform()
         time.sleep(1)
     return list(set(final_list))
+
+def get_number_of_pages(driver:webdriver)->list:
+    """
+    return the max pages that exist in the page for Barcelona
+    Args:
+        driver(webdriver): selenium webdriver
+    returns:
+        int: integer of the max pages
+    """
+    max_page = 0
+    html_text = driver.page_source
+    soup = BeautifulSoup(html_text)
+    all_nums = soup.find_all('ul',class_='f-right')
+    nums = all_nums('a')
+    print(all_nums) 
+
+    return max_page
 def main():
 
     #set chrome web driver
@@ -44,10 +61,10 @@ def main():
 
     #get properties url
     time.sleep(0.5)
-    properties_urls = get_all_properties_page(driver)
+    properties_urls = get_all_properties_in_page(driver)
     print(properties_urls)
     print(len(properties_urls))
-
+    max_page = get_number_of_pages(driver)
 
     
     #close web driver
