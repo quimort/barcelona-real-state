@@ -1,12 +1,16 @@
 #import modules
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
-import undetected_chromedriver as uc
-
+from components.etl_components.property import Property
+from utils import is_convertible_to_int
 def get_chrome_driver()-> webdriver:
     driver = webdriver.Chrome()
     return driver
@@ -31,6 +35,7 @@ def get_all_properties_in_page(driver:webdriver)->list:
         time.sleep(1)
     return list(set(final_list))
 
+
 def get_number_of_pages(driver:webdriver)->list:
     """
     return the max pages that exist in the page for Barcelona
@@ -41,12 +46,23 @@ def get_number_of_pages(driver:webdriver)->list:
     """
     max_page = 0
     html_text = driver.page_source
-    soup = BeautifulSoup(html_text)
+    list_numbers = []
+    soup = BeautifulSoup(html_text,'html.parser')
     all_nums = soup.find_all('ul',class_='f-right')
-    nums = all_nums('a')
-    print(all_nums) 
+    for num in all_nums:
+        a_tags = num.find_all('a')
+        for tags in a_tags:
+            value = tags.get_text(strip=True)
+            if is_convertible_to_int(value):
+                list_numbers.append(tags.get_text(strip=True))
+    print(list_numbers) 
 
     return max_page
+def get_property_data(driver:webdriver,url:str)-> Property:
+
+    driver.get(url)
+    time.sleep(2)
+
 def main():
 
     #set chrome web driver
