@@ -62,6 +62,13 @@ def get_property_data(driver:webdriver,url:str)-> Property:
 
     driver.get(url)
     time.sleep(2)
+    html_text = driver.page_source
+    soup = BeautifulSoup(html_text,'html.parser')
+    price = soup.find('div',class_='price').find('span').get_text(strip=True)
+    name = soup.find('div',class_='summary-left').find('h1').get_text(strip=True)
+    location = name = soup.find('div',class_='summary-left').find('article',class_='location').find('a').get_text(strip=True)
+    feature_conbtained = [ feature.find('strong').get_text(strip=True) for feature in soup.find('ul',class_="feature-container").find_all('li')]
+    description = soup.find('p',id_='js-detail-description').get_text(strip=True)
 
 def main():
 
@@ -81,7 +88,7 @@ def main():
     print(properties_urls)
     print(len(properties_urls))
     max_page = get_number_of_pages(driver)
-
+    get_property_data(driver,properties_urls[0])
     
     #close web driver
     driver.close()
