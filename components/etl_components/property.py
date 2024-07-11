@@ -2,7 +2,7 @@
 
 class Property:
 
-    def __init__(self,price,name,size,rooms,bathrooms,squere_meter_price,location,description,prop_type):
+    def __init__(self,price,name,size,rooms,bathrooms,squere_meter_price,location,description,prop_type,provider):
         self.price = price
         self.name = name
         self.size = size
@@ -12,6 +12,7 @@ class Property:
         self.location = location
         self.description = description
         self.prop_type = prop_type
+        self.provider = provider
 
     
     def get_price(self):
@@ -40,3 +41,6 @@ class Property:
     
     def get_prop_type(self):
         return self.prop_type
+    
+    def get_provider(self):
+        return self.provider

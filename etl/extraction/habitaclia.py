@@ -10,9 +10,13 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 from components.etl_components.property import Property
-from utils import is_convertible_to_int
-def get_chrome_driver()-> webdriver:
-    driver = webdriver.Chrome()
+import undetected_chromedriver as uc 
+from components.etl_components.utils import is_convertible_to_int
+
+
+
+def get_chrome_driver():
+    driver = driver = uc.Chrome() 
     return driver
 def get_propertie_url(soup:BeautifulSoup)->list:
 
@@ -26,13 +30,13 @@ def get_propertie_url(soup:BeautifulSoup)->list:
 
 def get_all_properties_in_page(driver:webdriver)->list:
     final_list = []
-    for i in range(15):
+    for i in range(5):
         html_text = driver.page_source
         soup = BeautifulSoup(html_text)
         prop = get_propertie_url(soup)
         final_list = final_list + prop
         ActionChains(driver).key_down(Keys.PAGE_DOWN).key_up(Keys.PAGE_DOWN).perform()
-        time.sleep(1)
+        time.sleep(3)
     return list(set(final_list))
 
 
@@ -64,7 +68,7 @@ def get_property_data(driver:webdriver,url:str)-> Property:
     time.sleep(2)
     html_text = driver.page_source
     soup = BeautifulSoup(html_text,'html.parser')
-    price = soup.find('div',class_='price').find('span').get_text(strip=True)
+    price = soup.find('div',class_='price').find('span',itemprop_='itemprop').get_text(strip=True)
     name = soup.find('div',class_='summary-left').find('h1').get_text(strip=True)
     location = name = soup.find('div',class_='summary-left').find('article',class_='location').find('a').get_text(strip=True)
     feature_conbtained = [ feature.find('strong').get_text(strip=True) for feature in soup.find('ul',class_="feature-container").find_all('li')]
@@ -74,6 +78,7 @@ def main():
 
     #set chrome web driver
     driver = get_chrome_driver()
+    
     #get web page
     driver.get("https://www.habitaclia.com/viviendas-barcelona.htm")
 
