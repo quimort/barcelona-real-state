@@ -95,4 +95,4 @@ class provider:
         self.get_property_data(properties_urls[0])
         
         #close web driver
-        driver.close()
+        self.driver.close()
