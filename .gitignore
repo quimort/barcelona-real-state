@@ -162,3 +162,5 @@ cython_debug/
 #.idea/
 # to-do
 to-do.txt
+#python files
+test.py
