@@ -1,46 +1,23 @@
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
 
+@dataclass(frozen=True)
 class Property:
+    """Shared output contract for every provider scraper.
 
-    def __init__(self,price,name,size,rooms,bathrooms,squere_meter_price,location,description,prop_type,provider):
-        self.price = price
-        self.name = name
-        self.size = size
-        self.rooms = rooms
-        self.bathrooms = bathrooms
-        self.squere_meter_price = squere_meter_price
-        self.location = location
-        self.description = description
-        self.prop_type = prop_type
-        self.provider = provider
+    `url` together with `provider` forms the natural dedup/upsert key.
+    """
 
-    
-    def get_price(self):
-        return self.price
-    
-    def get_name(self):
-        return self.name
-    
-    def get_size(self):
-        return self.size
-    
-    def get_rooms(self):
-        return self.rooms
-    
-    def get_bathrooms(self):
-        return self.bathrooms
-    
-    def get_squere_meter_price(self):
-        return self.squere_meter_price
-    
-    def get_location(self):
-        return self.location
-    
-    def get_description(self):
-        return self.description
-    
-    def get_prop_type(self):
-        return self.prop_type
-    
-    def get_provider(self):
-        return self.provider
+    price: str
+    name: str
+    size: str
+    rooms: str
+    bathrooms: str
+    squere_meter_price: str
+    location: str
+    description: str
+    prop_type: str
+    provider: str
+    url: str = ""
+    scraped_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

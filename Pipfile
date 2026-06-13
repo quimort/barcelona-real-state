@@ -7,11 +7,12 @@ name = "pypi"
 selenium = "*"
 beautifulsoup4 = "*"
 undetected-chromedriver = "*"
+psycopg2-binary = "*"
+setuptools = "<81"
 
 [dev-packages]
 pylint = "*"
 pytest = "*"
 
 [requires]
-python_version = "3.10"
-python_full_version = "3.10.12"
+python_version = "3.12"
