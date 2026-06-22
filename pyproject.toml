@@ -9,7 +9,13 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
+[tool.ruff.lint.per-file-ignores]
+# Test files manipulate sys.path before imports (required for offline test isolation).
+# HTML fixture strings also exceed the line limit.
+"tests/**/*.py" = ["E402", "E501"]
+
 [tool.mypy]
 python_version = "3.12"
 ignore_missing_imports = true
 warn_unused_ignores = false
+explicit_package_bases = true

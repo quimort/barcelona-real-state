@@ -29,10 +29,10 @@ PROVIDERS: dict[str, type[Provider]] = {
 }
 
 
-def run_provider(name: str, provider_cls: type[Provider]) -> int:
+def run_provider(name: str, provider_cls: type[Provider], limit: int | None = None) -> int:
     logger.info("=== Running provider: %s ===", name)
     try:
-        properties: list[Property] = provider_cls().run()
+        properties: list[Property] = provider_cls().run(max_properties=limit)  # type: ignore[call-arg]
         written = load_properties(properties)
         logger.info("%s: %d properties loaded", name, written)
         return written
@@ -44,6 +44,12 @@ def run_provider(name: str, provider_cls: type[Provider]) -> int:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run Barcelona real estate scrapers")
     parser.add_argument("--only", choices=PROVIDERS.keys(), help="Run a single provider")
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Cap number of properties scraped per provider (smoke-test mode)",
+    )
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -52,7 +58,7 @@ def main() -> None:
 
     total = 0
     for name, cls in selected.items():
-        total += run_provider(name, cls)
+        total += run_provider(name, cls, limit=args.limit)
     logger.info("Done. Total properties loaded across providers: %d", total)
 
 

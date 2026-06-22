@@ -30,7 +30,7 @@ default_args = {
 }
 
 
-def build_dag() -> "DAG":
+def build_dag() -> DAG:
     with DAG(
         dag_id="daily_real_estate_etl",
         description="Daily scrape of habitaclia, idealista, fotocasa → Postgres",

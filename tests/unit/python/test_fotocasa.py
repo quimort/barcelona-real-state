@@ -6,8 +6,8 @@ DOM structure.  Because the selectors in fotocasa.py are best-effort (marked
 TODO), these tests also serve as living documentation of what the parser expects.
 """
 
-import sys
 import os
+import sys
 import types
 
 # ---------------------------------------------------------------------------
@@ -15,6 +15,7 @@ import types
 # undetected_chromedriver and selenium are not available in CI test runners,
 # so we inject lightweight stubs into sys.modules.
 # ---------------------------------------------------------------------------
+
 
 def _make_stub_module(name: str) -> types.ModuleType:
     mod = types.ModuleType(name)
@@ -47,25 +48,35 @@ def _ensure_stubs() -> None:
     # Provide the actual names the modules use
     by_mod = sys.modules["selenium.webdriver.common.by"]
     if not hasattr(by_mod, "By"):
+
         class _By:
             ID = "id"
             CSS_SELECTOR = "css selector"
             XPATH = "xpath"
+
         by_mod.By = _By  # type: ignore[attr-defined]
 
     keys_mod = sys.modules["selenium.webdriver.common.keys"]
     if not hasattr(keys_mod, "Keys"):
+
         class _Keys:
             PAGE_DOWN = ""
+
         keys_mod.Keys = _Keys  # type: ignore[attr-defined]
 
     ac_mod = sys.modules["selenium.webdriver.common.action_chains"]
     if not hasattr(ac_mod, "ActionChains"):
+
         class _ActionChains:
             def __init__(self, driver: object) -> None: ...
-            def key_down(self, key: str) -> "_ActionChains": return self
-            def key_up(self, key: str) -> "_ActionChains": return self
+            def key_down(self, key: str) -> "_ActionChains":
+                return self
+
+            def key_up(self, key: str) -> "_ActionChains":
+                return self
+
             def perform(self) -> None: ...
+
         ac_mod.ActionChains = _ActionChains  # type: ignore[attr-defined]
 
     ec_mod = sys.modules["selenium.webdriver.support.expected_conditions"]
@@ -74,9 +85,12 @@ def _ensure_stubs() -> None:
 
     ui_mod = sys.modules["selenium.webdriver.support.ui"]
     if not hasattr(ui_mod, "WebDriverWait"):
+
         class _WebDriverWait:
             def __init__(self, driver: object, timeout: float) -> None: ...
-            def until(self, condition: object) -> object: return object()
+            def until(self, condition: object) -> object:
+                return object()
+
         ui_mod.WebDriverWait = _WebDriverWait  # type: ignore[attr-defined]
 
     wd_mod = sys.modules["selenium.webdriver"]
@@ -92,7 +106,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from bs4 import BeautifulSoup
 
 from etl.extraction.fotocasa import FotocasaProvider, _parse_property
-
 
 # ---------------------------------------------------------------------------
 # HTML fixtures
@@ -197,6 +210,7 @@ PAGINATION_HTML_NO_LIST = """
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _soup(html: str) -> BeautifulSoup:
     return BeautifulSoup(html, "html.parser")
 
@@ -209,6 +223,7 @@ def _provider() -> FotocasaProvider:
 # ---------------------------------------------------------------------------
 # Tests — get_property_urls
 # ---------------------------------------------------------------------------
+
 
 class TestGetPropertyUrls:
     def test_extracts_urls_from_data_href(self) -> None:
@@ -262,6 +277,7 @@ class TestGetPropertyUrls:
 # ---------------------------------------------------------------------------
 # Tests — _parse_property (detail-page parsing)
 # ---------------------------------------------------------------------------
+
 
 class TestParseProperty:
     _URL = "https://www.fotocasa.es/es/comprar/viviendas/barcelona-capital/piso-123456"
@@ -351,6 +367,7 @@ class TestParseProperty:
 
     def test_returns_property_instance(self) -> None:
         from components.etl_components.property import Property as PropertyClass
+
         prop = self._parse(DETAIL_PAGE_FULL)
         assert isinstance(prop, PropertyClass)
 
@@ -358,6 +375,7 @@ class TestParseProperty:
 # ---------------------------------------------------------------------------
 # Tests — provider constructor
 # ---------------------------------------------------------------------------
+
 
 class TestFotocasaProviderInit:
     def test_provider_name(self) -> None:

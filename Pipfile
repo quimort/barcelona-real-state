@@ -9,9 +9,12 @@ beautifulsoup4 = "*"
 undetected-chromedriver = "*"
 psycopg2-binary = "*"
 setuptools = "<81"
+playwright = "*"
+playwright-stealth = "*"
 
 [dev-packages]
-pylint = "*"
+ruff = "*"
+mypy = "*"
 pytest = "*"
 
 [requires]

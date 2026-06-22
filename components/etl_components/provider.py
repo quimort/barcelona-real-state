@@ -1,8 +1,9 @@
 import logging
 import random
+import re
+import subprocess
 import time
 from abc import ABC, abstractmethod
-from typing import Optional
 
 import undetected_chromedriver as uc
 from bs4 import BeautifulSoup
@@ -11,6 +12,34 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 
 from .property import Property
+
+
+def _detect_chrome_major_version() -> int | None:
+    """Read the installed Chrome major version from the Windows registry.
+
+    Checks HKCU first (per-user install), then HKLM (system-wide install).
+    Returns None on failure so callers can fall back to uc's own detection.
+    """
+    _REGISTRY_KEYS = [
+        r"HKCU\Software\Google\Chrome\BLBeacon",
+        r"HKLM\Software\Google\Chrome\BLBeacon",
+        r"HKLM\Software\Wow6432Node\Google\Chrome\BLBeacon",
+    ]
+    for key in _REGISTRY_KEYS:
+        try:
+            result = subprocess.run(
+                ["reg", "query", key, "/v", "version"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            match = re.search(r"(\d+)\.\d+\.\d+\.\d+", result.stdout)
+            if match:
+                return int(match.group(1))
+        except Exception:
+            continue
+    return None
+
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +69,11 @@ def _random_sleep(min_s: float, max_s: float) -> None:
 
 
 class Provider(ABC):
-
     def __init__(self, provider_name: str, base_url: str, property_type: str) -> None:
         self.provider_name = provider_name
         self.base_url = base_url
         self.property_type = property_type
-        self._driver: Optional[webdriver.Chrome] = None
+        self._driver: webdriver.Chrome | None = None
 
     @property
     def driver(self) -> webdriver.Chrome:
@@ -57,7 +85,8 @@ class Provider(ABC):
         options = uc.ChromeOptions()
         w, h = random.choice(_VIEWPORTS)
         options.add_argument(f"--window-size={w},{h}")
-        self._driver = uc.Chrome(options=options)
+        version = _detect_chrome_major_version()
+        self._driver = uc.Chrome(options=options, version_main=version)
 
     def stop(self) -> None:
         if self._driver:
@@ -72,10 +101,10 @@ class Provider(ABC):
         self.stop()
 
     def _is_blocked(self) -> bool:
-        page = self._driver.page_source.lower()
+        page = self.driver.page_source.lower()
         if any(marker in page for marker in _BLOCK_MARKERS):
             return True
-        title = (self._driver.title or "").lower()
+        title = (self.driver.title or "").lower()
         return any(word in title for word in _BLOCK_TITLE_WORDS)
 
     def _get_with_retry(self, url: str, max_retries: int = 3) -> bool:
@@ -84,7 +113,7 @@ class Provider(ABC):
             _random_sleep(2.0, 4.5)
             if not self._is_blocked():
                 return True
-            backoff = (2 ** attempt) * random.uniform(3.0, 7.0)
+            backoff = (2**attempt) * random.uniform(3.0, 7.0)
             logger.warning("Blocked on %s — retrying in %.1fs (attempt %d/%d)", url, backoff, attempt + 1, max_retries)
             time.sleep(backoff)
         logger.error("Gave up loading %s after %d attempts", url, max_retries)
@@ -100,13 +129,13 @@ class Provider(ABC):
         return list(set(collected))
 
     @abstractmethod
-    def get_property_urls(self, soup: BeautifulSoup) -> list[str]:
-        ...
+    def get_property_urls(self, soup: BeautifulSoup) -> list[str]: ...
 
     @abstractmethod
-    def get_number_of_pages(self) -> int:
-        ...
+    def get_number_of_pages(self) -> int: ...
 
     @abstractmethod
-    def get_property_data(self, url: str) -> Property:
-        ...
+    def get_property_data(self, url: str) -> Property: ...
+
+    @abstractmethod
+    def run(self, max_properties: int | None = None) -> list[Property]: ...

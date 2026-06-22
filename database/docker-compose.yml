@@ -1,8 +1,8 @@
 services:
   db:
-    image: postgres
+    image: postgres:16
     restart: always
-    environment: 
+    environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin1234
       POSTGRES_DB: barcelona-real-state
@@ -15,16 +15,21 @@ services:
       interval: 10s
       retries: 5
       start_period: 5s
+
   pgadmin:
     image: dpage/pgadmin4
     restart: always
-    ports:
-      - "8888:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@gmail.com
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin1234
     volumes:
-    - pgadmin-data:/var/lib/pgadmin
+      - pgadmin_data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   local_pgdata:
-  pgadmin-data:
+  pgadmin_data:

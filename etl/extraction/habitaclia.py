@@ -1,7 +1,7 @@
 import logging
+import os
 import random
 import sys
-import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
@@ -22,29 +22,28 @@ BASE_URL = "https://www.habitaclia.com/viviendas-barcelona.htm"
 def _parse_property(soup: BeautifulSoup, url: str, property_type: str, provider: str) -> Property:
     """Pure parsing of a habitaclia detail page — no driver, unit-testable."""
     price_container = soup.find("div", class_="price")
-    price = (
-        price_container.find("span", itemprop="price").get_text(strip=True)
-        if price_container and price_container.find("span", itemprop="price")
-        else ""
-    )
+    price = ""
+    if price_container:
+        price_span = price_container.find("span", itemprop="price")
+        price = price_span.get_text(strip=True) if price_span else ""
 
     summary = soup.find("div", class_="summary-left")
-    name = summary.find("h1").get_text(strip=True) if summary and summary.find("h1") else ""
-    location_anchor = (
-        summary.find("article", class_="location").find("a")
-        if summary and summary.find("article", class_="location")
-        else None
-    )
+    name = ""
+    location_anchor = None
+    if summary:
+        h1 = summary.find("h1")
+        name = h1.get_text(strip=True) if h1 else ""
+        loc_article = summary.find("article", class_="location")
+        location_anchor = loc_article.find("a") if loc_article else None
     location = location_anchor.get_text(strip=True) if location_anchor else ""
 
     features: list[str] = []
     feature_list = soup.find("ul", class_="feature-container")
     if feature_list:
-        features = [
-            li.find("strong").get_text(strip=True)
-            for li in feature_list.find_all("li")
-            if li.find("strong")
-        ]
+        for li in feature_list.find_all("li"):
+            strong = li.find("strong")
+            if strong:
+                features.append(strong.get_text(strip=True))
     # Verified against live HTML 2026-06-13: the first <strong> in the
     # feature-container is the price, so drop it to align size/rooms/bathrooms.
     if features and "€" in features[0]:
@@ -69,7 +68,6 @@ def _parse_property(soup: BeautifulSoup, url: str, property_type: str, provider:
 
 
 class HabitacliaProvider(Provider):
-
     def __init__(self) -> None:
         super().__init__(
             provider_name="habitaclia",
@@ -82,7 +80,7 @@ class HabitacliaProvider(Provider):
         for item in soup.find_all("div", class_="list-item-info"):
             anchor = item.find("a")
             if anchor and anchor.get("href"):
-                urls.append(anchor["href"])
+                urls.append(str(anchor["href"]))
         return urls
 
     def get_number_of_pages(self) -> int:
@@ -103,14 +101,12 @@ class HabitacliaProvider(Provider):
 
     def _accept_cookies(self) -> None:
         try:
-            btn = WebDriverWait(self.driver, 8).until(
-                EC.element_to_be_clickable((By.ID, "didomi-notice-agree-button"))
-            )
+            btn = WebDriverWait(self.driver, 8).until(EC.element_to_be_clickable((By.ID, "didomi-notice-agree-button")))
             btn.click()
         except Exception:
             logger.debug("Cookie banner not found or already dismissed")
 
-    def run(self) -> list[Property]:
+    def run(self, max_properties: int | None = None) -> list[Property]:
         with self:
             self.driver.get(self.base_url)
             self._accept_cookies()
@@ -120,7 +116,9 @@ class HabitacliaProvider(Provider):
 
             all_urls = self.scroll_and_collect_urls()
             random.shuffle(all_urls)
-            logger.info("Collected %d property URLs", len(all_urls))
+            if max_properties is not None:
+                all_urls = all_urls[:max_properties]
+            logger.info("Collected %d property URLs (limit=%s)", len(all_urls), max_properties)
 
             properties: list[Property] = []
             for url in all_urls:

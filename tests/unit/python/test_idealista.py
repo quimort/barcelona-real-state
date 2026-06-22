@@ -16,11 +16,9 @@ _REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"
 if _REPO_ROOT not in sys.path:
     sys.path.insert(0, _REPO_ROOT)
 
-import pytest
 from bs4 import BeautifulSoup
 
 from etl.extraction.idealista import IdealistaProvider, _parse_property
-
 
 # ---------------------------------------------------------------------------
 # HTML fixtures
@@ -93,6 +91,7 @@ DETAIL_PAGE_PARTIAL_HTML = """
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _soup(html: str) -> BeautifulSoup:
     return BeautifulSoup(html, "html.parser")
 
@@ -100,6 +99,7 @@ def _soup(html: str) -> BeautifulSoup:
 # ---------------------------------------------------------------------------
 # Tests for get_property_urls
 # ---------------------------------------------------------------------------
+
 
 class TestGetPropertyUrls:
     """Tests for IdealistaProvider.get_property_urls (pure BeautifulSoup logic)."""
@@ -121,9 +121,7 @@ class TestGetPropertyUrls:
         soup = _soup(LISTING_PAGE_HTML)
         urls = self.provider.get_property_urls(soup)
         for url in urls:
-            assert url.startswith("https://www.idealista.com"), (
-                f"Expected absolute URL, got: {url}"
-            )
+            assert url.startswith("https://www.idealista.com"), f"Expected absolute URL, got: {url}"
 
     def test_correct_paths_preserved(self) -> None:
         soup = _soup(LISTING_PAGE_HTML)
@@ -171,6 +169,7 @@ class TestGetPropertyUrls:
 # ---------------------------------------------------------------------------
 # Tests for _parse_property (pure function, no driver needed)
 # ---------------------------------------------------------------------------
+
 
 class TestParseProperty:
     """Tests for the pure _parse_property helper."""
@@ -267,6 +266,7 @@ class TestParseProperty:
 # ---------------------------------------------------------------------------
 # Tests for get_number_of_pages (via static HTML, no driver)
 # ---------------------------------------------------------------------------
+
 
 class TestGetNumberOfPages:
     """Tests for the pagination parsing logic extracted from get_number_of_pages."""

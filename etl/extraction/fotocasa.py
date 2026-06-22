@@ -73,7 +73,7 @@ class FotocasaProvider(Provider):
         # Path 1 — article with data-href (observed in some Fotocasa layouts)
         # TODO: verify selector against live HTML
         for article in soup.find_all("article", attrs={"data-href": True}):
-            href = article.get("data-href", "")
+            href = str(article.get("data-href", ""))
             if href:
                 full = href if href.startswith("http") else base + href
                 urls.append(full)
@@ -81,7 +81,7 @@ class FotocasaProvider(Provider):
         # Path 2 — anchor inside the card info block
         # TODO: verify selector against live HTML
         for anchor in soup.find_all("a", class_="re-CardPackMinimalist-info"):
-            href = anchor.get("href", "")
+            href = str(anchor.get("href", ""))
             if href:
                 full = href if href.startswith("http") else base + href
                 urls.append(full)
@@ -90,7 +90,7 @@ class FotocasaProvider(Provider):
         # TODO: verify selector against live HTML
         if not urls:
             for anchor in soup.find_all("a", href=True):
-                href: str = anchor["href"]
+                href = str(anchor["href"])
                 if "/es/comprar/" in href and href not in urls:
                     full = href if href.startswith("http") else base + href
                     urls.append(full)
@@ -155,15 +155,13 @@ class FotocasaProvider(Provider):
         # TODO: verify cookie-button selector against live HTML
         """
         selectors = [
-            (By.ID, "didomi-notice-agree-button"),           # Didomi CMP
+            (By.ID, "didomi-notice-agree-button"),  # Didomi CMP
             (By.CSS_SELECTOR, "button[data-testid='TcfAccept']"),  # Fotocasa-specific
-            (By.CSS_SELECTOR, "button.sui-AtomButton--primary"),    # generic primary btn
+            (By.CSS_SELECTOR, "button.sui-AtomButton--primary"),  # generic primary btn
         ]
         for by, value in selectors:
             try:
-                btn = WebDriverWait(self.driver, 6).until(
-                    EC.element_to_be_clickable((by, value))
-                )
+                btn = WebDriverWait(self.driver, 6).until(EC.element_to_be_clickable((by, value)))
                 btn.click()
                 logger.debug("Accepted cookies via selector (%s, %s)", by, value)
                 return
@@ -175,7 +173,7 @@ class FotocasaProvider(Provider):
     # Orchestration
     # ------------------------------------------------------------------
 
-    def run(self) -> list[Property]:
+    def run(self, max_properties: int | None = None) -> list[Property]:
         """Full extraction run: open browser, collect URLs, scrape detail pages."""
         with self:
             self.driver.get(self.base_url)
@@ -218,6 +216,7 @@ class FotocasaProvider(Provider):
 # Pure parsing helper (testable without a browser)
 # ------------------------------------------------------------------
 
+
 def _parse_property(
     soup: BeautifulSoup,
     url: str,
@@ -243,7 +242,7 @@ def _parse_property(
         price_tag = soup.find("span", class_="re-DetailPrice-price")
     if price_tag is None:
         # Fallback: any element with itemprop="price"
-        price_tag = soup.find(attrs={"itemprop": "price"})
+        price_tag = soup.find(itemprop="price")
     if price_tag is not None:
         price = price_tag.get_text(strip=True)
 
@@ -264,7 +263,7 @@ def _parse_property(
     location = ""
     location_tag = soup.find("span", class_="re-DetailHeader-location")
     if location_tag is None:
-        location_tag = soup.find(attrs={"itemprop": "addressLocality"})
+        location_tag = soup.find(itemprop="addressLocality")
     if location_tag is not None:
         location = location_tag.get_text(strip=True)
 
@@ -294,15 +293,15 @@ def _parse_property(
     # Fallback: data-testid attributes used in newer Fotocasa layouts
     # TODO: verify selector against live HTML
     if not size:
-        size_tag = soup.find(attrs={"data-testid": "feature-surface"})
+        size_tag = soup.find(attrs={"data-testid": "feature-surface"})  # type: ignore[call-overload]
         if size_tag:
             size = size_tag.get_text(strip=True)
     if not rooms:
-        rooms_tag = soup.find(attrs={"data-testid": "feature-rooms"})
+        rooms_tag = soup.find(attrs={"data-testid": "feature-rooms"})  # type: ignore[call-overload]
         if rooms_tag:
             rooms = rooms_tag.get_text(strip=True)
     if not bathrooms:
-        baths_tag = soup.find(attrs={"data-testid": "feature-bathrooms"})
+        baths_tag = soup.find(attrs={"data-testid": "feature-bathrooms"})  # type: ignore[call-overload]
         if baths_tag:
             bathrooms = baths_tag.get_text(strip=True)
 

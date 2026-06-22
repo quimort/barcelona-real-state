@@ -31,8 +31,18 @@ ON CONFLICT (provider, url) DO UPDATE SET
 
 def _to_row(p: Property) -> tuple:
     return (
-        p.provider, p.url, p.price, p.name, p.size, p.rooms, p.bathrooms,
-        p.squere_meter_price, p.location, p.description, p.prop_type, p.scraped_at,
+        p.provider,
+        p.url,
+        p.price,
+        p.name,
+        p.size,
+        p.rooms,
+        p.bathrooms,
+        p.squere_meter_price,
+        p.location,
+        p.description,
+        p.prop_type,
+        p.scraped_at,
     )
 
 
